@@ -10,12 +10,6 @@ if (isset($_SERVER['PANTHEON_ENVIRONMENT'])) {
       $conf['environment_indicator_overwritten_color'] = '#FF0000';
       $conf['environment_indicator_overwritten_position'] = 'bottom';
       $conf['environment_indicator_overwritten_fixed'] = TRUE;
-      $conf['environment_indicator_git_support'] = 0;
-      $conf['environment_indicator_integration'] = array(
-        'toolbar' => 0,
-        'admin_menu' => 0,
-        'navbar' => 0,
-      );
       break;
     case 'test':
       //$baseurl = 'http://test-sitename.gotpantheon.com'; // NO trailing slash!
@@ -24,12 +18,6 @@ if (isset($_SERVER['PANTHEON_ENVIRONMENT'])) {
       $conf['environment_indicator_overwritten_color'] = '#FF9500';
       $conf['environment_indicator_overwritten_position'] = 'bottom';
       $conf['environment_indicator_overwritten_fixed'] = TRUE;
-      $conf['environment_indicator_git_support'] = 0;
-      $conf['environment_indicator_integration'] = array(
-        'toolbar' => 0,
-        'admin_menu' => 0,
-        'navbar' => 0,
-      );
       $conf['preprocess_css'] = 1;
       $conf['preprocess_js'] = 1;
       $conf['block_cache'] = 1;
@@ -50,12 +38,6 @@ if (isset($_SERVER['PANTHEON_ENVIRONMENT'])) {
   $conf['environment_indicator_overwritten_color'] = '#001EFF';
   $conf['environment_indicator_overwritten_position'] = 'bottom';
   $conf['environment_indicator_overwritten_fixed'] = TRUE;
-  $conf['environment_indicator_git_support'] = 0;
-  $conf['environment_indicator_integration'] = array(
-    'toolbar' => 0,
-    'admin_menu' => 0,
-    'navbar' => 0,
-  );
 }
 
 /**
