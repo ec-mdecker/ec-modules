@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Feature Basic Site Configuration feature.
+ */
+
+include_once 'feature_basic_config.features.inc';

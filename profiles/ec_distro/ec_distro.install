@@ -1,0 +1,61 @@
+<?php
+/**
+ * Implements hook_install().
+ *
+ * Perform actions to set up the site for this profile.
+ */
+function ec_distro_install() {
+  /*
+   * Enable, disable and set active themes
+   */
+/*  theme_enable(array(
+    'theme_default' => 'az_gov',
+  ));
+  variable_set('theme_default', 'az_gov');*/
+  variable_set('admin_theme', 'seven');
+  variable_set('node_admin_theme', '1');
+  //theme_disable(array('bartik'));
+
+
+  //Rebuilds all enabled features
+  features_revert();
+
+// ignore any rebuild messages
+  node_access_needs_rebuild(FALSE);
+
+// ignore any other install messages
+  drupal_get_messages();
+
+  // Create a default role for site administrators, with all available permissions assigned.
+  $role = new stdClass();
+  $role->name = 'administrator';
+  $role->weight = 20;
+  user_role_save($role);
+
+  user_role_grant_permissions($role->rid, array_keys(module_invoke_all('permission')));
+// Set this as the administrator role.
+  variable_set('user_admin_role', $role->rid);
+
+
+  //Creates Initial 403 Page using the Basic Page type
+  $node = new StdClass();
+  $node->type = 'basic_page';
+  $node->status = 1;
+  $node->title = "Access Denied";
+  $node->body['und'][0]['format'] = 'basic_html';
+  $node->body['und'][0]['value'] = '<h2 style="text-align: center;">We Appologize.</h2><p style="text-align: center;">You currently do not have permission to view this page.<br>If you believe you have encountered this by mistake, please contact the site administrators.</p><p style="text-align: center;">Thank You.</p>';
+  node_save($node);
+
+  //Creates Initial 404 Page using the Basic Page type
+  $node = new StdClass();
+  $node->type = 'basic_page';
+  $node->status = 1;
+  $node->title = "Page Not Found";
+  $node->body['und'][0]['format'] = 'basic_html';
+  $node->body['und'][0]['value'] = '<h2 style="text-align: center;">We Appologize.</h2><p style="text-align: center;">This page can not be found. Please check the URL and try again.</p><p style="text-align: center;">Thank You.</p>';
+  node_save($node);
+
+  //sets the 403 & 404 variables for the first nodes created above.
+  variable_set('site_403', 'node/1');
+  variable_set('site_404', 'node/2');
+}

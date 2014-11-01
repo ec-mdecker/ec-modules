@@ -1,0 +1,17 @@
+diff --git a/remote_stream_wrapper.module b/remote_stream_wrapper.module
+index c671e5f..5094099 100644
+--- a/remote_stream_wrapper.module
++++ b/remote_stream_wrapper.module
+@@ -127,9 +127,11 @@ function remote_stream_wrapper_preprocess_image(&$variables) {
+  * which will fail image_style_deliver().
+  */
+ function remote_stream_wrapper_image_style_path($style_name, $uri) {
++  $path = file_uri_target($uri);
++  $path = preg_replace('/[\?&-]/', '/', $path);
+   // Force the image style to be returned with the default file scheme, but
+   // with the file's original scheme in the path.
+-  return file_default_scheme() . '://styles/' . $style_name . '/' . file_uri_scheme($uri) . '/' . file_uri_target($uri);
++  return file_default_scheme() . '://styles/' . $style_name . '/' . file_uri_scheme($uri) . '/' . $path;
+ }
+ 
+ /**

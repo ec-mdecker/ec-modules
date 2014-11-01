@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Feature Basic Workbench Config feature.
+ */
+
+include_once 'feature_basic_workbench_config.features.inc';
