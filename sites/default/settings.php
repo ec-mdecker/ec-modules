@@ -22,6 +22,7 @@ if (isset($_SERVER['PANTHEON_ENVIRONMENT'])) {
       $conf['preprocess_js'] = 1;
       $conf['block_cache'] = 1;
       $conf['cache'] = 1;
+      $conf['page_cache_maximum_age'] = 1800;
       break;
     case 'live':
       //$baseurl = 'http://www.domain.tld'; // NO trailing slash!
@@ -30,6 +31,7 @@ if (isset($_SERVER['PANTHEON_ENVIRONMENT'])) {
       $conf['preprocess_js'] = 1;
       $conf['block_cache'] = 1;
       $conf['cache'] = 1;
+      $conf['page_cache_maximum_age'] = 1800;
       break;
   }
 } else {
