@@ -5,26 +5,18 @@
  * Perform actions to set up the site for this profile.
  */
 function ec_distro_install() {
-  /*
-   * Enable, disable and set active themes
-   */
-/*  theme_enable(array(
-    'theme_default' => 'az_gov',
-  ));
-  variable_set('theme_default', 'az_gov');*/
+  // Enable, disable and set active themes
   variable_set('admin_theme', 'seven');
   variable_set('node_admin_theme', '1');
-  //theme_disable(array('bartik'));
-
 
   //Rebuilds all enabled features
   features_revert();
 
-// ignore any rebuild messages
+  // ignore any rebuild messages
   node_access_needs_rebuild(FALSE);
 
-// ignore any other install messages
-  drupal_get_messages();
+  // ignore any other install messages
+  //drupal_get_messages();
 
   // Create a default role for site administrators, with all available permissions assigned.
   $role = new stdClass();
@@ -33,11 +25,11 @@ function ec_distro_install() {
   user_role_save($role);
 
   user_role_grant_permissions($role->rid, array_keys(module_invoke_all('permission')));
-// Set this as the administrator role.
+  // Set this as the administrator role.
   variable_set('user_admin_role', $role->rid);
 
 
-  //Creates Initial 403 Page using the Basic Page type
+  // Creates Initial 403 Page using the Basic Page type
   $node = new StdClass();
   $node->type = 'basic_page';
   $node->status = 1;
@@ -46,7 +38,7 @@ function ec_distro_install() {
   $node->body['und'][0]['value'] = '<h2 style="text-align: center;">We Appologize.</h2><p style="text-align: center;">You currently do not have permission to view this page.<br>If you believe you have encountered this by mistake, please contact the site administrators.</p><p style="text-align: center;">Thank You.</p>';
   node_save($node);
 
-  //Creates Initial 404 Page using the Basic Page type
+  // Creates Initial 404 Page using the Basic Page type
   $node = new StdClass();
   $node->type = 'basic_page';
   $node->status = 1;
@@ -55,7 +47,41 @@ function ec_distro_install() {
   $node->body['und'][0]['value'] = '<h2 style="text-align: center;">We Appologize.</h2><p style="text-align: center;">This page can not be found. Please check the URL and try again.</p><p style="text-align: center;">Thank You.</p>';
   node_save($node);
 
-  //sets the 403 & 404 variables for the first nodes created above.
+  // sets the 403 & 404 variables for the first nodes created above.
   variable_set('site_403', 'node/1');
   variable_set('site_404', 'node/2');
+  // sets the node options which aren't contained in the feature.
+  variable_set('node_options_basic_page', array('status'));
+  variable_set('node_options_basic_block', array('status'));
+  variable_set('node_options_basic_slideshow', array('status'));
+  variable_set('node_options_basic_event', array('status'));
+
+  $permissions = array(
+    'anonymous user' => array(
+      'access content' => 1,
+      'search content' => 1,
+      'view files' => 1,
+    ),
+    'authenticated user' => array(
+      'access content' => 1,
+      'search content' => 1,
+      'view files' => 1,
+      'use text format basic_html' => 1,
+      'view own files' => 1,
+      'view own unpublished content' => 1,
+    ),
+  );
+
+  // obtains all the roles and role IDs
+  $query = db_select('role', 'r')
+    ->fields('r', array('rid', 'name'))
+    ->execute();
+
+  // loops through all the roles and sets the permissions if the role exists
+  // from the array of permissions above
+  while ($row = $query->fetchAssoc()) {
+    if (array_key_exists($row['name'], $permissions)) {
+      user_role_change_permissions($row['rid'], $permissions[$row['name']]);
+    }
+  }
 }

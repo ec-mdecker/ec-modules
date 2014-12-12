@@ -100,12 +100,12 @@ function insert_view_gen_field_widget_form(&$form, &$form_state, $field, $instan
   }
 
   //creates the option list based on admin config settings
-  $options = array('none' => '-None-');
+  $options = array('none' => '- None -');
   foreach ($view_list as $view_key => $view) {
     if (isset($view['displays'])) {
       foreach ($view['displays'] as $key => $display) {
         if (!array_key_exists($key, $mod_settings) || !$mod_settings[$key]) {
-          $options[$key] = $view['human_name'] . ' - ' . $display;
+          $options[$view['human_name']][$key] = $display;
         }
       }
     }

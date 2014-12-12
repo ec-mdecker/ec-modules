@@ -1,7 +1,7 @@
 name = Menu Block Placement Defaults
 core = 7.x
 description = Automatically creates the proper views, quicktabs, and context upon field creation
-configure = admin/config/mbp-defaults
+configure = admin/config/mbp/defaults
 
 scripts[] = mbp_defaults.js
 

@@ -1,0 +1,8 @@
+<?php
+
+/**
+ *  Implements hook_uninstall().
+ */
+function import_redirects_uninstall() {
+  variable_del('import_redirects');
+}

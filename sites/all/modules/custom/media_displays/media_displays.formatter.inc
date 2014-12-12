@@ -15,13 +15,19 @@ function theme_media_displays_download_file_alt($variables) {
   $output = '';
   foreach ($variables['items'] as $delta => $item) {
     if (!empty($item)) {
+//      if(isset($item['field_alt_text']) && !empty($item['field_alt_text'])){
+//        $item['field_alt_text']['und'][0]['value'] = htmlspecialchars_decode($item['field_alt_text']['und'][0]['value']);
+//      }
       $output .= theme('media_displays_download_alt_item',
         array('file' => (object) $item));
     }
   }
-  //$output = '<span class="media-display-download">' . $output . '</span>';
+
   return $output;
+
 }
+
+
 
 /**
  * Theme function for the 'direct_download' multiple file formatter.
@@ -52,6 +58,7 @@ function theme_media_displays_download_alt_item($variables) {
     $options['attributes']['title'] = $file->filename;
   }
 
+  $link_text = htmlspecialchars_decode($link_text , ENT_QUOTES);
   return l($link_text, $url, $options);
 }
 

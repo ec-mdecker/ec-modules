@@ -1,0 +1,204 @@
+<?php
+/**
+ * @file
+ */
+
+
+/**
+ * Implements hook_menu().
+ */
+function import_redirects_menu() {
+  $items = array();
+  $items['admin/config/search/redirect/import_redirects'] = array(
+    'title' => 'Import',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('import_redirects_upload_form'),
+    'access arguments' => array('administer redirects'),
+    'type' => MENU_LOCAL_TASK,
+  );
+  return $items;
+}
+
+function import_redirects_upload_form() {
+  $defaults = variable_get('import_redirects');
+  $form = array();
+  $form['file'] = array(
+    '#title' => t('Upload CSV'),
+    '#type' => 'managed_file',
+    '#required' => TRUE,
+    '#description' => t('Upload CSV with redirect information.'),
+    '#upload_validators' => array(
+      'file_validate_extensions' => array('csv'),
+    ),
+    '#upload_location' => 'public://',
+  );
+  $form['has_headers'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('File has headers'),
+    '#default_value' => isset($defaults['has_headers']) ? $defaults['has_headers'] : '',
+  );
+  $form['from_header'] = array(
+    '#title' => 'From Column',
+    '#type' => 'textfield',
+    '#description' => t('The header or column number of old page urls.'),
+    '#default_value' => isset($defaults['from_header']) ? $defaults['from_header'] : '',
+  );
+  $form['to_header'] = array(
+    '#title' => 'To Column',
+    '#type' => 'textfield',
+    '#description' => t('The header or column of new existing page urls.'),
+    '#default_value' => isset($defaults['to_header']) ? $defaults['to_header'] : '',
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Import',
+  );
+  if (isset($defaults['results'])) {
+    $form['results_fieldset'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Results'),
+      '#collapsed' => FALSE,
+      '#collapsible' => TRUE,
+    );
+    $headers = array('Row Number', 'Results');
+    $form['results_fieldset']['result_table'] = array(
+      '#theme' => 'table',
+      '#header' => $headers,
+      '#rows' => $defaults['results']
+    );
+    unset($defaults['results']);
+    variable_set('import_redirects', $defaults);
+  }
+  return $form;
+}
+
+
+function import_redirects_upload_form_submit($form, &$form_state) {
+  $file_url = file_create_url($form['file']['#file']->uri);
+  $file = fopen($file_url, 'r');
+  $i = 0;
+  $j = 0;
+  $row_number = 0;
+  $results = array();
+
+  $keys = array(
+    $form['from_header']['#value'],
+    $form['to_header']['#value'],
+  );
+  if ($form['has_headers']['#value']) {
+    $columns = fgetcsv($file);
+    $keys = array(
+      array_search($keys[0], $columns),
+      array_search($keys[1], $columns),
+    );
+    $row_number++;
+  }
+
+  while ($line = fgetcsv($file)) {
+    $row_number++;
+    $from = parse_url($line[$keys[0]]);
+    $from = trim($from['path'], '/');
+    $to = import_redirects_get_uri($line[$keys[1]]);
+
+    $existing = db_select('redirect', 'r')
+      ->condition('source', $from)
+      ->condition('redirect', $to)
+      ->fields('r')
+      ->execute()
+      ->fetchAssoc();
+
+    if (empty($existing)) {
+      if ($from) {
+        if ($to) {
+          $redirect = new stdClass();
+          redirect_object_prepare(
+            $redirect,
+            array(
+              'source' => $from,
+              'source_options' => array(),
+              'redirect' => $to,
+              'redirect_options' => array(),
+              'language' => LANGUAGE_NONE,
+            )
+          );
+          redirect_save($redirect);
+          $i++;
+          $results[] = array(
+            'row' => $row_number,
+            'result' => 'Successful',
+          );
+        }
+        else {
+          $j++;
+          $results[] = array(
+            'row' => $row_number,
+            'result' => 'Redirect url invalid.',
+          );
+        }
+      }
+      else {
+        $j++;
+        $results[] = array(
+          'row' => $row_number,
+          'result' => 'Source url errors.',
+        );
+      }
+    }
+    else {
+      $j++;
+      $results[] = array(
+        'row' => $row_number,
+        'result' => 'Redirect already exists.',
+      );
+    }
+  }
+
+  if ($i) {
+    drupal_set_message('Successfully created ' . $i . ' new redirects.');
+  }
+  if ($j) {
+    drupal_set_message('Skipped/ignored ' . $j . ' lines.', 'warning');
+  }
+
+  fclose($file);
+  $settings = array(
+    'has_headers' => $form['has_headers']['#value'],
+    'from_header' => $form['from_header']['#value'],
+    'to_header' => $form['to_header']['#value'],
+    'results' => $results,
+  );
+  variable_set('import_redirects', $settings);
+
+  file_delete($form['file']['#file']);
+}
+
+function import_redirects_get_uri($url) {
+  $url = urldecode(trim($url, '/'));
+  $url = preg_replace_callback('#://([^/]+)/([^?]+)#', function ($match) {
+    return '://' . $match[1] . '/' . join('/', array_map('rawurlencode', explode('/', $match[2])));
+  }, $url);
+
+  $parsed_url = parse_url($url);
+
+  if (isset($parsed_url['host']) && $parsed_url['host'] == $_SERVER['HTTP_HOST']) {
+    if (drupal_lookup_path('source', $parsed_url['path'])) {
+      return urldecode(trim($parsed_url['path'], '/'));
+    }
+    else {
+      $uri = 'public://' . urldecode(substr($url, strpos($url, '/files/') + 7));
+      if (file_exists($uri)) {
+        return urldecode(trim($parsed_url['path'], '/'));
+      }
+    }
+  }
+  elseif (drupal_lookup_path('source', $url)) {
+    return urldecode(trim($parsed_url['path'], '/'));
+  }
+  else {
+    $uri = 'public://' . urldecode(substr($url, strpos($url, '/files/') + 7));
+    if (file_exists($uri)) {
+      return urldecode(trim($parsed_url['path'], '/'));
+    }
+  }
+  return FALSE;
+}

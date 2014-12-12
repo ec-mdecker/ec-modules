@@ -1,0 +1,35 @@
+<?php
+/**
+ * @file
+ * Code for the Feature Tabbed Types feature.
+ */
+
+include_once 'feature_tabbed_types.features.inc';
+
+
+/**
+ *  Implements hook_node_view_alter().
+ */
+function feature_tabbed_types_node_view_alter(&$build) {
+  switch ($build['#bundle']) {
+    case 'basic_tabbed_page':
+    case 'basic_tabbed_block':
+      if (isset($build['field_tabbed_page_tabs'])) {
+        $settings = array(
+          'hide_empty_tabs' => TRUE,
+          'ajax' => FALSE,
+        );
+        $tabs = array();
+        foreach ($build['field_tabbed_page_tabs']['#items'] as $delta => $item) {
+          $tab = $build['field_tabbed_page_tabs'][$delta]['entity']['field_collection_item'][$item['value']];
+          $tabs[] = array(
+            'title' => $tab['field_tab_label'][0]['#markup'],
+            'contents' => array('#markup' => $tab['field_tab_body'][0]['#markup']),
+          );
+        }
+        $quicktab = quicktabs_build_quicktabs('content-tab', $settings, $tabs);
+        $build['field_tabbed_page_tabs'] = $quicktab;
+      }
+      break;
+  }
+}

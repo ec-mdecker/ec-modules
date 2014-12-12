@@ -27,4 +27,6 @@ function mbp_defaults_install() {
  */
 function mbp_defaults_uninstall() {
   variable_del('mbp_defaults');
+  variable_del('mbp_defaults_contextual');
+  variable_del('mbp_defaults_style');
 }

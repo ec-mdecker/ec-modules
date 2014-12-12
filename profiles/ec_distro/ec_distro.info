@@ -1,15 +1,12 @@
 name = Eagle Creek
 distribution_name = "Eagle Creek"
-description = Eagle Creek Software's Custom Distrobution
+description = Eagle Creek Software's Custom Distribution
 core = 7.x
 exclusive = "1"
 
-; Core Dependencies
 dependencies[] = block
 dependencies[] = color
-dependencies[] = comment
 dependencies[] = contextual
-dependencies[] = dashboard
 dependencies[] = help
 dependencies[] = image
 dependencies[] = list
@@ -25,8 +22,12 @@ dependencies[] = overlay
 dependencies[] = field_ui
 dependencies[] = file
 dependencies[] = rdf
+
+;dependencies[] = apachesolr
+;dependencies[] = apachesolr_search
 dependencies[] = pantheon_api
 dependencies[] = pantheon_login
+
 
 dependencies[] = feature_basic_config
 dependencies[] = feature_basic_content

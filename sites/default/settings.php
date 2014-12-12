@@ -1,47 +1,5 @@
 <?php
 
-
-if (isset($_SERVER['PANTHEON_ENVIRONMENT'])) {
-  switch ($_SERVER['PANTHEON_ENVIRONMENT']) {
-    case 'dev':
-      //$base_url = 'http://dev-sitename.gotpantheon.com'; // NO trailing slash!
-      $conf['environment_indicator_overwrite'] = TRUE;
-      $conf['environment_indicator_overwritten_name'] = 'Development Environment';
-      $conf['environment_indicator_overwritten_color'] = '#FF0000';
-      $conf['environment_indicator_overwritten_position'] = 'bottom';
-      $conf['environment_indicator_overwritten_fixed'] = TRUE;
-      break;
-    case 'test':
-      //$baseurl = 'http://test-sitename.gotpantheon.com'; // NO trailing slash!
-      $conf['environment_indicator_overwrite'] = TRUE;
-      $conf['environment_indicator_overwritten_name'] = 'Testing Environment';
-      $conf['environment_indicator_overwritten_color'] = '#FF9500';
-      $conf['environment_indicator_overwritten_position'] = 'bottom';
-      $conf['environment_indicator_overwritten_fixed'] = TRUE;
-      $conf['preprocess_css'] = 1;
-      $conf['preprocess_js'] = 1;
-      $conf['block_cache'] = 1;
-      $conf['cache'] = 1;
-      $conf['page_cache_maximum_age'] = 1800;
-      break;
-    case 'live':
-      //$baseurl = 'http://www.domain.tld'; // NO trailing slash!
-      $conf['environment_indicator_overwrite'] = FALSE;
-      $conf['preprocess_css'] = 1;
-      $conf['preprocess_js'] = 1;
-      $conf['block_cache'] = 1;
-      $conf['cache'] = 1;
-      $conf['page_cache_maximum_age'] = 1800;
-      break;
-  }
-} else {
-  $conf['environment_indicator_overwrite'] = TRUE;
-  $conf['environment_indicator_overwritten_name'] = 'Local Environment';
-  $conf['environment_indicator_overwritten_color'] = '#001EFF';
-  $conf['environment_indicator_overwritten_position'] = 'bottom';
-  $conf['environment_indicator_overwritten_fixed'] = TRUE;
-}
-
 /**
  * @file
  * Drupal site-specific configuration file.
@@ -94,7 +52,6 @@ if (isset($_SERVER['PANTHEON_ENVIRONMENT'])) {
  * @see conf_path()
  */
 
-
 /**
  * Database settings:
  *
@@ -126,11 +83,13 @@ if (isset($_SERVER['PANTHEON_ENVIRONMENT'])) {
  * webserver.  For most other drivers, you must specify a
  * username, password, host, and database name.
  *
- * Some database engines support transactions.  In order to enable
- * transaction support for a given database, set the 'transactions' key
- * to TRUE.  To disable it, set it to FALSE.  Note that the default value
- * varies by driver.  For MySQL, the default is FALSE since MyISAM tables
- * do not support transactions.
+ * Transaction support is enabled by default for all drivers that support it,
+ * including MySQL. To explicitly disable it, set the 'transactions' key to
+ * FALSE.
+ * Note that some configurations of MySQL, such as the MyISAM engine, don't
+ * support it and will proceed silently even if enabled. If you experience
+ * transaction related crashes with such configuration, set the 'transactions'
+ * key to FALSE.
  *
  * For each database, you may optionally specify multiple "target" databases.
  * A target database allows Drupal to try to send certain queries to a
@@ -253,7 +212,21 @@ if (isset($_SERVER['PANTHEON_ENVIRONMENT'])) {
  *   );
  * @endcode
  */
-$databases = array();
+$databases = array (
+  'default' => 
+  array (
+    'default' => 
+    array (
+      'database' => 'ec_distro',
+      'username' => 'root',
+      'password' => '',
+      'host' => 'localhost',
+      'port' => '',
+      'driver' => 'mysql',
+      'prefix' => '',
+    ),
+  ),
+);
 
 /**
  * Access control for update.php script.
@@ -285,7 +258,7 @@ $update_free_access = FALSE;
  *   $drupal_hash_salt = file_get_contents('/home/example/salt.txt');
  *
  */
-$drupal_hash_salt = '';
+$drupal_hash_salt = 'SASBdNHftNPL6wppH4TzFHzGxALKHPYl6MgKTpJ27YM';
 
 /**
  * Base URL (optional).
@@ -308,7 +281,6 @@ $drupal_hash_salt = '';
  * for you.
  */
 # $base_url = 'http://www.example.com';  // NO trailing slash!
-
 
 /**
  * PHP settings:
@@ -477,6 +449,18 @@ ini_set('session.cookie_lifetime', 2000000);
 # $conf['js_gzip_compression'] = FALSE;
 
 /**
+ * Block caching:
+ *
+ * Block caching may not be compatible with node access modules depending on
+ * how the original block cache policy is defined by the module that provides
+ * the block. By default, Drupal therefore disables block caching when one or
+ * more modules implement hook_node_grants(). If you consider block caching to
+ * be safe on your site and want to bypass this restriction, uncomment the line
+ * below.
+ */
+# $conf['block_cache_bypass_node_grants'] = TRUE;
+
+/**
  * String overrides:
  *
  * To override specific strings on your site with or without enabling the Locale
@@ -604,3 +588,4 @@ $conf['404_fast_html'] = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML+RDFa 1.0//EN"
  * the leading hash sign below.
  */
 # $conf['pressflow_smart_start'] = TRUE;
+

@@ -463,14 +463,14 @@ function feature_basic_config_strongarm() {
   $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
   $strongarm->api_version = 1;
   $strongarm->name = 'menu_block_1_admin_title';
-  $strongarm->value = 'Menu Block - Main Menu, Level: 2, Depth: 1';
+  $strongarm->value = '';
   $export['menu_block_1_admin_title'] = $strongarm;
 
   $strongarm = new stdClass();
   $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
   $strongarm->api_version = 1;
   $strongarm->name = 'menu_block_1_depth';
-  $strongarm->value = '1';
+  $strongarm->value = '0';
   $export['menu_block_1_depth'] = $strongarm;
 
   $strongarm = new stdClass();

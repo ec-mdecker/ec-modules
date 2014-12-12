@@ -21,7 +21,7 @@ function mbp_defaults_permission() {
  */
 function mbp_defaults_menu() {
   $items = array(
-    'admin/config/mbp-defaults' => array(
+    'admin/config/content/mbp/defaults' => array(
       'title' => "Menu Block Placement Defaults",
       'description' => 'Apply settings for pre-configured blocks.',
       'page callback' => 'drupal_get_form',
@@ -292,7 +292,7 @@ function mbp_defaults_preprocess_views_view_table(&$vars) {
   $vars['attributes_array']['id'] = 'draggableviews-table-' . $vars['view']->name . '-' . $vars['view']->current_display . '-' . $counter;
   // Add javascript.
   drupal_add_tabledrag($vars['attributes_array']['id'], 'order', 'sibling', 'draggableviews-weight');
-  $counter++;
+  ++$counter;
 }
 
 
