@@ -207,15 +207,3 @@ function mbp_roles_form_alter(&$form, &$form_state, $form_id) {
     }
   }
 }
-
-/**
- * Implements hook_module_implements_alter().
- */
-function mbp_roles_module_implements_alter(&$implementations, $hook) {
-  if (isset($implementations['mbp_roles'])) {
-    $module = $implementations['mbp_roles'];
-    unset($implementations['mbp_roles']);
-    $implementations['mbp_roles'] = $module;
-  }
-}
-

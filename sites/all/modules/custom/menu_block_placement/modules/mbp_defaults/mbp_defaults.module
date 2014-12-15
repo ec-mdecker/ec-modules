@@ -41,6 +41,12 @@ function mbp_defaults_config() {
   if (!module_exists('contextual') && variable_get('mbp_defaults_contextual', 1) == 1) {
     drupal_set_message(t('You must have Contextual Module enabled to display the links as contextual links.'), 'error');
   }
+  $form['mbp_defaults_supress'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Supress views query alter errors on view edit page'),
+    '#description' => t('Useful if customizing the views and using custom query alters'),
+    '#default_value' => variable_get('mbp_defaults_supress', 0),
+  );
 
   $form['mbp_defaults_contextual'] = array(
     '#type' => 'radios',
@@ -137,7 +143,8 @@ function mbp_defaults_ctools_plugin_api($owner, $api) {
 function mbp_defaults_views_query_alter(&$view, &$query) {
   $tags = explode(', ', $view->tag);
   if (in_array('mbp_defaults', $tags) && $view->type == 'Default') {
-    //if the view contains a region and individual_pages fields
+
+    // if the view contains a region and individual_pages fields
     if (in_array('mbp_regions', $tags) && in_array('mbp_individual', $tags)) {
       if (isset($query->where[1]) && isset($query->where[0]) && isset($query->where[0]['conditions'][0]) && isset($query->where[0]['conditions'][1]) && isset($query->where[0]['conditions'][2])) {
         $query->group_operator = 'OR';
@@ -150,7 +157,7 @@ function mbp_defaults_views_query_alter(&$view, &$query) {
         unset($query->where[0]);
       }
     }
-    //if the view contains only the individual_pages field
+    // if the view contains only the individual_pages field
     elseif (in_array('mbp_individual', $tags)) {
       $query->group_operator = 'OR';
       $query->where[] = $query->where[1];
@@ -163,6 +170,18 @@ function mbp_defaults_views_query_alter(&$view, &$query) {
 }
 
 /**
+ * Implements hook_views_ui_display_top_links_alter().
+ */
+function mbp_defaults_views_ui_display_top_links_alter(&$links, $view, $display_id) {
+  if ($view->export_module == 'mbp_defaults' && $view->type != 'Default') {
+    $tags = explode(', ', $view->tag);
+    if (in_array('mbp_individual', $tags) && !variable_get('mbp_defaults_supress', 0)) {
+      drupal_set_message(t('This view is not in default state. Query alter will not function as intended. Supress these messages <a href="/admin/config/content/mbp/defaults">here</a>'), 'warning');
+    }
+  }
+}
+
+/**
  * Structures the blocks info. If a MBP field contains the region select box,
  * a block will be created for each region in the select list.
  * If the region select box does not exist, a single block will be created.
@@ -170,8 +189,8 @@ function mbp_defaults_views_query_alter(&$view, &$query) {
  * Implements hook_block_info().
  */
 function mbp_defaults_block_info() {
-  $regions = variable_get('mbp_regions');
-  $fields = variable_get('mbp_defaults');
+  $regions = variable_get('mbp_regions', array());
+  $fields = variable_get('mbp_defaults', array());
 
   $blocks = array();
   foreach ($fields as $fid => $field) {
@@ -239,7 +258,6 @@ function mbp_defaults_block_view_alter(&$data, $block) {
  * Implements hook_contextual_links_view_alter().
  */
 function mbp_defaults_contextual_links_view_alter(&$element, $items) {
-
   // Setup our contextual links for our quicktabs
   if (isset($element['#element']['#new_links'])) {
     foreach ($element['#element']['#new_links'] as $link) {
@@ -261,10 +279,21 @@ function mbp_defaults_contextual_links_view_alter(&$element, $items) {
  * Implements hook_flush_caches().
  */
 function mbp_defaults_flush_caches() {
-  db_delete('block')
+  $regions = variable_get('mbp_regions');
+  $query = db_select('block', 'b')
+    ->fields('b', array('bid', 'delta'))
     ->condition('module', 'mbp_defaults')
-    ->condition('custom', '1')
     ->execute();
+
+  while ($block = $query->fetchAssoc()) {
+    $block_region = substr($block['delta'], strrpos($block['delta'], '-') + 1);
+    if ((int) $block_region === 0 && !array_key_exists($block_region, $regions)) {
+      db_delete('block')
+        ->condition('module', 'mbp_defaults')
+        ->condition('bid', $block['bid'])
+        ->execute();
+    }
+  }
 }
 
 /**
@@ -295,9 +324,34 @@ function mbp_defaults_preprocess_views_view_table(&$vars) {
   ++$counter;
 }
 
+/**
+ * Implements hook_default_rules_configuration().
+ *
+ * Clears cache data for default views upon sorting a view.
+ */
+function mbp_defaults_default_rules_configuration() {
+  if (module_exists('cache_actions')) {
+    $rule = rules_reaction_rule();
+    $rule->label = 'MBP Defaults Sorted View';
+    $rule->active = TRUE;
+    $rule->event('draggableviews_rules_event_sorted')
+      ->action('cache_actions_action_clear_cache_cid', array(
+        'bin' => 'cache_views_data',
+        'cid' => 'mbp_',
+        'wildcard' => 1
+      ));
+
+    $configs['rules_mbp_defaults'] = $rule;
+    return $configs;
+  }
+}
 
 /**
- * Helper Function that contains all the quicktabs settings information
+ * @param $field_id
+ * @param $field_name
+ * @param $region
+ *
+ * Returns a renderable array for the default blocks
  */
 function mbp_defaults_build_quicktabs($field_id, $field_name, $region) {
   $field_settings = field_info_field($field_name);
@@ -315,7 +369,7 @@ function mbp_defaults_build_quicktabs($field_id, $field_name, $region) {
       'display' => 'block',
       'args' => $field_settings['settings']['default_selects']['region'] ? $region : '',
       'title' => 'Display',
-      'weight' => '-100',
+      'weight' => '0',
       'type' => 'view',
     ),
     1 => array(
@@ -323,7 +377,7 @@ function mbp_defaults_build_quicktabs($field_id, $field_name, $region) {
       'display' => 'block_1',
       'args' => $field_settings['settings']['default_selects']['region'] ? $region : '',
       'title' => 'Sort/Edit',
-      'weight' => '-99',
+      'weight' => '10',
       'type' => 'view',
     ),
   );

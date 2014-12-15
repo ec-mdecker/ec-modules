@@ -16,7 +16,7 @@ function ec_distro_install() {
   node_access_needs_rebuild(FALSE);
 
   // ignore any other install messages
-  //drupal_get_messages();
+  drupal_get_messages();
 
   // Create a default role for site administrators, with all available permissions assigned.
   $role = new stdClass();
@@ -55,6 +55,30 @@ function ec_distro_install() {
   variable_set('node_options_basic_block', array('status'));
   variable_set('node_options_basic_slideshow', array('status'));
   variable_set('node_options_basic_event', array('status'));
+  $search_by_page_settings = array(
+    array(
+      'environment_name' => 'Full Site',
+      'page_title' => 'Search Results',
+      'block_title' => 'Search',
+      'field_label' => 'Search for',
+      'button_label' => 'Search',
+      'page_path' => 'search-results',
+      'results_per_page' => 10,
+      'exclude_tags' => '',
+      'sbp_nodes_types_indexed' => array(
+        'basic_page' => 'basic_page',
+        'basic_block' => 0,
+        'basic_slideshow' => 0,
+      ),
+      'sbp_nodes_display_type' => 'excerpts',
+      'sbp_nodes_role' => '1',
+      'sbp_nodes_min_time' => '1',
+      'sbp_nodes_max_time' => '86400',
+      'op' => 'Save configuration',
+    ),
+  );
+  variable_set('search_by_page_settings', $search_by_page_settings);
+
 
   $permissions = array(
     'anonymous user' => array(

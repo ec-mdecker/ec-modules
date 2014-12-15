@@ -9,3 +9,5 @@ dependencies[] = menu_block_placement
 dependencies[] = quicktabs
 dependencies[] = draggableviews
 dependencies[] = context
+
+files[] = mbp_defaults.views_default.inc

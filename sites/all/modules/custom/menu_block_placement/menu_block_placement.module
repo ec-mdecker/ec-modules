@@ -318,21 +318,21 @@ function menu_block_placement_form_alter(&$form, &$form_state, $form_id) {
 
 
 /**
- *  Implements hook_node_insert().
+ * Implements hook_node_insert().
  */
 function menu_block_placement_node_insert($node) {
   _menu_block_placement_reindex($node);
 }
 
 /**
- *  Implements hook_node_update().
+ * Implements hook_node_update().
  */
 function menu_block_placement_node_update($node) {
   _menu_block_placement_reindex($node);
 }
 
 /**
- *  Implements hook_node_delete().
+ * Implements hook_node_delete().
  */
 function menu_block_placement_node_delete($node) {
   _menu_block_placement_reindex($node);

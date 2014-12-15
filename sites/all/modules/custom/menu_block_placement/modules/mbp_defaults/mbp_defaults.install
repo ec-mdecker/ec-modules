@@ -20,6 +20,11 @@ function mbp_defaults_install() {
   }
 
   variable_set('mbp_defaults', $mbp_fields);
+
+  db_update('system')
+    ->fields(array('weight' => 5))
+    ->condition('name', 'mbp_defaults', '=')
+    ->execute();
 }
 
 /**
